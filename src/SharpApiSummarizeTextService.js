@@ -5,6 +5,15 @@ const { SharpApiCoreService, SharpApiJobTypeEnum } = require('@sharpapi/sharpapi
  */
 class SharpApiSummarizeTextService extends SharpApiCoreService {
   /**
+   * Creates a new SharpApiSummarizeTextService instance
+   * @param {string} apiKey - Your SharpAPI API key
+   * @param {string} [apiBaseUrl='https://sharpapi.com/api/v1'] - API base URL
+   */
+  constructor(apiKey, apiBaseUrl = 'https://sharpapi.com/api/v1') {
+    super(apiKey, apiBaseUrl, '@sharpapi/sharpapi-node-summarize-text/1.0.1');
+  }
+
+  /**
    * Generates a summarized version of the provided content.
    * Perfect for generating marketing introductions of longer texts.
    *
