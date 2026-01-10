@@ -1,13 +1,13 @@
 ![SharpAPI GitHub cover](https://sharpapi.com/sharpapi-github-php-bg.jpg "SharpAPI Node.js Client")
 
-# Text Summarization API for Node.js
+# Text Summarizer API for Node.js
 
-## 📝 Summarize long text into concise summaries — powered by SharpAPI AI.
+## 📄 Generate concise summaries of long text — powered by SharpAPI AI.
 
 [![npm version](https://img.shields.io/npm/v/@sharpapi/sharpapi-node-summarize-text.svg)](https://www.npmjs.com/package/@sharpapi/sharpapi-node-summarize-text)
 [![License](https://img.shields.io/npm/l/@sharpapi/sharpapi-node-summarize-text.svg)](https://github.com/sharpapi/sharpapi-node-client/blob/master/LICENSE.md)
 
-**SharpAPI Text Summarization** uses advanced AI to create concise, accurate summaries of long-form content. Perfect for articles, documents, reports, and more.
+**SharpAPI Text Summarizer** condenses long articles, documents, and content into concise summaries. Perfect for content curation, creating executive summaries, and improving content digestibility.
 
 ---
 
@@ -18,7 +18,10 @@
 3. [Usage](#usage)
 4. [API Documentation](#api-documentation)
 5. [Examples](#examples)
-6. [License](#license)
+6. [Use Cases](#use-cases)
+7. [API Endpoint](#api-endpoint)
+8. [Related Packages](#related-packages)
+9. [License](#license)
 
 ---
 
@@ -51,31 +54,23 @@ const { SharpApiSummarizeTextService } = require('@sharpapi/sharpapi-node-summar
 const apiKey = process.env.SHARP_API_KEY; // Store your API key in environment variables
 const service = new SharpApiSummarizeTextService(apiKey);
 
-const longText = `
-Artificial intelligence (AI) has revolutionized numerous industries in recent years.
-From healthcare to finance, AI-powered systems are helping organizations make better
-decisions, automate complex processes, and improve customer experiences. Machine
-learning algorithms can now analyze vast amounts of data in seconds, identifying
-patterns that would take humans years to discover. As AI technology continues to
-advance, we can expect even more transformative applications across all sectors
-of the economy.
-`;
+const text = 'Long article text that needs to be summarized...';
 
-async function summarizeContent() {
+async function processText() {
   try {
-    // Submit summarization job
-    const statusUrl = await service.summarizeText(longText, 'English', 50);
+    // Submit processing job
+    const statusUrl = await service.summarize(text);
     console.log('Job submitted. Status URL:', statusUrl);
 
     // Fetch results (polls automatically until complete)
     const result = await service.fetchResults(statusUrl);
-    console.log('Summary:', result.getResultJson());
+    console.log('Result:', result.getResultJson());
   } catch (error) {
     console.error('Error:', error.message);
   }
 }
 
-summarizeContent();
+processText();
 ```
 
 ---
@@ -84,123 +79,51 @@ summarizeContent();
 
 ### Methods
 
-#### `summarizeText(text: string, language?: string, maxLength?: number, context?: string): Promise<string>`
-
-Summarizes the provided text into a concise version.
+The service provides methods for processing content asynchronously. All methods return a status URL for polling results.
 
 **Parameters:**
-- `text` (string, required): The text content to summarize
-- `language` (string, optional): The language of the text (default: 'English')
-- `maxLength` (number, optional): Maximum length of summary in words (default: 100)
-- `context` (string, optional): Additional context to guide summarization
+- `content` (string, required): The content to process
+- `language` (string, optional): Output language
+- `voice_tone` (string, optional): Desired tone (e.g., professional, casual)
+- `context` (string, optional): Additional context for better results
 
-**Returns:**
-- Promise<string>: Status URL for polling the job result
-
-**Example:**
-```javascript
-const statusUrl = await service.summarizeText(
-  longArticle,
-  'English',
-  75,
-  'Focus on key technological advances'
-);
-const result = await service.fetchResults(statusUrl);
-```
+For complete API specifications, see the [Postman Documentation](https://documenter.getpostman.com/view/31106842/2sBXVeGsVm).
 
 ### Response Format
 
-The API returns the summarized text:
-
-```json
-{
-  "summary": "AI has revolutionized industries by enabling data analysis and automation...",
-  "original_length": 423,
-  "summary_length": 50,
-  "compression_ratio": 0.12
-}
-```
+The API returns structured JSON data. Response format varies by endpoint - see documentation for details.
 
 ---
 
 ## Examples
 
-### Basic Text Summarization
+### Basic Example
 
 ```javascript
 const { SharpApiSummarizeTextService } = require('@sharpapi/sharpapi-node-summarize-text');
 
 const service = new SharpApiSummarizeTextService(process.env.SHARP_API_KEY);
 
-const article = `
-[Your long article content here...]
-`;
+// Customize polling behavior if needed
+service.setApiJobStatusPollingInterval(10);  // Poll every 10 seconds
+service.setApiJobStatusPollingWait(180);     // Wait up to 3 minutes
 
-service.summarizeText(article, 'English', 100)
-  .then(statusUrl => service.fetchResults(statusUrl))
-  .then(result => {
-    const summary = result.getResultJson();
-    console.log('Original length:', summary.original_length, 'words');
-    console.log('Summary length:', summary.summary_length, 'words');
-    console.log('Summary:', summary.summary);
-  })
-  .catch(error => console.error('Summarization failed:', error));
+// Use the service
+// ... (implementation depends on specific service)
 ```
 
-### Multi-Document Summarization
-
-```javascript
-const service = new SharpApiSummarizeTextService(process.env.SHARP_API_KEY);
-
-const documents = [
-  { title: 'AI Report 2024', content: '...' },
-  { title: 'Market Analysis', content: '...' },
-  { title: 'Tech Trends', content: '...' }
-];
-
-const summaries = await Promise.all(
-  documents.map(async (doc) => {
-    const statusUrl = await service.summarizeText(doc.content, 'English', 50);
-    const result = await service.fetchResults(statusUrl);
-    return {
-      title: doc.title,
-      summary: result.getResultJson().summary
-    };
-  })
-);
-
-console.log('Document summaries:', summaries);
-```
-
-### Context-Aware Summarization
-
-```javascript
-const service = new SharpApiSummarizeTextService(process.env.SHARP_API_KEY);
-
-const technicalDoc = `[Long technical documentation...]`;
-
-const statusUrl = await service.summarizeText(
-  technicalDoc,
-  'English',
-  100,
-  'Focus on API endpoints and authentication methods'
-);
-
-const result = await service.fetchResults(statusUrl);
-console.log('Technical summary:', result.getResultJson().summary);
-```
+For more examples, visit the [Product Page](https://sharpapi.com/en/catalog/ai/content-marketing-automation/summarize-text).
 
 ---
 
 ## Use Cases
 
-- **Content Curation**: Create summaries for news aggregation platforms
-- **Research**: Quickly understand academic papers and research documents
-- **Business Intelligence**: Summarize reports and market analyses
-- **Email Management**: Generate summaries of long email threads
-- **Documentation**: Create executive summaries of technical documents
-- **Social Media**: Generate post previews from long-form content
-- **E-learning**: Provide study summaries of educational materials
+- **Content Curation**: Create brief overviews of long articles
+- **Executive Summaries**: Generate business document summaries
+- **News Aggregation**: Summarize news articles for quick reading
+- **Research**: Condense research papers and reports
+- **Email Digests**: Create brief summaries for newsletters
+- **Product Descriptions**: Generate short descriptions from detailed content
 
 ---
 
@@ -209,17 +132,16 @@ console.log('Technical summary:', result.getResultJson().summary);
 **POST** `/content/summarize`
 
 For detailed API specifications, refer to:
-- [Postman Documentation](https://documenter.getpostman.com/view/31106842/2sBXVeGsVa)
+- [Postman Documentation](https://documenter.getpostman.com/view/31106842/2sBXVeGsVm)
 - [Product Page](https://sharpapi.com/en/catalog/ai/content-marketing-automation/summarize-text)
 
 ---
 
 ## Related Packages
 
-- [@sharpapi/sharpapi-node-translate](https://www.npmjs.com/package/@sharpapi/sharpapi-node-translate) - Text translation
-- [@sharpapi/sharpapi-node-paraphrase](https://www.npmjs.com/package/@sharpapi/sharpapi-node-paraphrase) - Text paraphrasing
-- [@sharpapi/sharpapi-node-generate-keywords](https://www.npmjs.com/package/@sharpapi/sharpapi-node-generate-keywords) - Keyword extraction
-- [@sharpapi/sharpapi-node-client](https://www.npmjs.com/package/@sharpapi/sharpapi-node-client) - Full SharpAPI SDK
+- [@sharpapi/sharpapi-node-translate](https://www.npmjs.com/package/@sharpapi/sharpapi-node-translate)
+- [@sharpapi/sharpapi-node-paraphrase](https://www.npmjs.com/package/@sharpapi/sharpapi-node-paraphrase)
+- [@sharpapi/sharpapi-node-generate-keywords](https://www.npmjs.com/package/@sharpapi/sharpapi-node-generate-keywords)
 
 ---
 
